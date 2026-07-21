@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Do not track or upload folder structure
+Datasets/
+ModelResults/
+Models/
+Src/
