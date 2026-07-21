@@ -243,7 +243,8 @@ clone_src_repo() {
 
     echo "Found src_repo.txt — cloning preprocessing/evaluation repo into Src/ ..."
     if [[ -d "$SRC_DIR/.git" ]]; then
-        echo "  [skip] $SRC_DIR already contains a git repo, skipping clone."
+        echo "  [pull] $SRC_DIR already exists, pulling latest changes ..."
+        git -C "$SRC_DIR" pull --ff-only || echo "  [warning] git pull failed in $SRC_DIR (check for local changes or uncommitted work)."
     else
         echo "  [clone] $url -> $SRC_DIR"
         git clone "$url" "$SRC_DIR"
@@ -281,7 +282,8 @@ if [[ -f "$MODELS_LIST" ]]; then
         env_name="${custom_env:-$(basename "$target_dir")}"
 
         if [[ -d "$target_dir/.git" ]]; then
-            echo "  [skip] $target_dir already exists, skipping clone."
+            echo "  [pull] $target_dir already exists, pulling latest changes ..."
+            git -C "$target_dir" pull --ff-only || echo "  [warning] git pull failed in $target_dir (check for local changes or uncommitted work)."
         else
             echo "  [clone] $url -> $target_dir"
             git clone "$url" "$target_dir"
