@@ -118,6 +118,39 @@ echo "  - $RAW_DIR"
 echo "  - $PREPROCESSED_DIR"
 echo "--------------------------------------------------"
 
+# --- Helper: handle extra pre-install pip commands and local editable packages ---
+# Looks for two optional files in $target_dir:
+#   pre_install.txt   -> one full 'pip install ...' args per line, run BEFORE local packages
+#                        (e.g. torch with a custom --index-url)
+#   local_packages.txt -> one subfolder name per line, each installed via
+#                        'pip install --no-build-isolation -e <folder>'
+#                        (use this for setup.py packages with CUDAExtension/cpp_extension deps)
+install_repo_extras() {
+    local target_dir="$1"
+    local env_name="$2"
+
+    local pre_install_file="$target_dir/pre_install.txt"
+    local local_pkgs_file="$target_dir/local_packages.txt"
+
+    if [[ -f "$pre_install_file" ]]; then
+        echo "    [conda] running pre-install pip commands for '$env_name' ..."
+        while IFS= read -r line || [[ -n "$line" ]]; do
+            [[ -z "$line" || "$line" =~ ^# ]] && continue   # skip blanks/comments
+            echo "        pip install $line"
+            conda run -n "$env_name" pip install $line
+        done < "$pre_install_file"
+    fi
+
+    if [[ -f "$local_pkgs_file" ]]; then
+        echo "    [conda] building local packages for '$env_name' ..."
+        while IFS= read -r pkg_dir || [[ -n "$pkg_dir" ]]; do
+            [[ -z "$pkg_dir" || "$pkg_dir" =~ ^# ]] && continue
+            echo "        pip install --no-build-isolation -e $target_dir/$pkg_dir"
+            conda run -n "$env_name" pip install --no-build-isolation -e "$target_dir/$pkg_dir"
+        done < "$local_pkgs_file"
+    fi
+}
+
 # --- Helper: create a conda env for a given repo folder, if needed ---
 create_conda_env_for_repo() {
     local target_dir="$1"
@@ -148,6 +181,7 @@ create_conda_env_for_repo() {
         cd "$target_dir" || exit 1
         conda env create -n "$env_name" -f "$env_yml"
     )
+    install_repo_extras "$target_dir" "$env_name"
     # subshell exits here — we're automatically back in the original directory
     elif [[ -f "$target_dir/requirements.txt" ]]; then
         echo "    [conda] no environment.yml found; creating bare env '$env_name' (python 3)"
