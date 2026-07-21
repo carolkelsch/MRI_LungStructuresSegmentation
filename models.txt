@@ -1,0 +1,4 @@
+https://github.com/carolkelsch/nnUNet.git nnunet nnunet_tst_env
+https://github.com/carolkelsch/my_naviairway.git naviairway naviairway_tst_env
+https://github.com/carolkelsch/TfeNet_thesis.git tfenet tfenet_tst_env
+https://github.com/carolkelsch/lungmask_thesis.git lungmask lungmask_tst_env
