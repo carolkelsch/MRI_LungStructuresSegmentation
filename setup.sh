@@ -176,13 +176,13 @@ create_conda_env_for_repo() {
     fi
 
     if [[ -n "$env_yml" ]]; then
-    echo "    [conda] creating env '$env_name' from $(basename "$env_yml") ..."
-    (
-        cd "$target_dir" || exit 1
-        conda env create -n "$env_name" -f "$env_yml"
-    )
-    install_repo_extras "$target_dir" "$env_name"
-    # subshell exits here — we're automatically back in the original directory
+        echo "    [conda] creating env '$env_name' from $(basename "$env_yml") ..."
+        (
+            cd "$target_dir" || exit 1
+            conda env create -n "$env_name" -f "$env_yml"
+        )
+        install_repo_extras "$target_dir" "$env_name"
+        # subshell exits here — we're automatically back in the original directory
     elif [[ -f "$target_dir/requirements.txt" ]]; then
         echo "    [conda] no environment.yml found; creating bare env '$env_name' (python 3)"
         echo "            and installing from requirements.txt via pip ..."
@@ -190,9 +190,7 @@ create_conda_env_for_repo() {
         conda run -n "$env_name" pip install -r "$target_dir/requirements.txt"
     else
         echo "    [conda] no environment.yml or requirements.txt found in $target_dir."
-        echo "            Creating bare env '$env_name' (python 3) — add dependencies manually,"
-        echo "            or add an environment.yml/requirements.txt to the repo and re-run."
-        conda create -y -n "$env_name" python=3
+        echo "            Skipping env '$env_name'"
     fi
 }
 
